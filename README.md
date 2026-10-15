@@ -26,7 +26,7 @@ cd "D:\crew IQ\backend"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8002
 ```
 
 ### Frontend (terminal 2)
@@ -66,8 +66,22 @@ pytest -q
 | GET | `/api/risks` | All project risks |
 | GET | `/api/risks/{project_id}` | Single project risk |
 | GET | `/api/activities` | Recent activity log |
+| GET | `/api/github/progress` | GitHub task completion, PR throughput, and review metrics |
 
-Interactive docs: http://127.0.0.1:8000/docs
+Interactive docs: http://127.0.0.1:8001/docs
+
+## GitHub Analytics Configuration
+
+Configure the following backend environment variables (see `backend/.env.example`):
+- `GITHUB_OWNER`: GitHub organization or user account.
+- `GITHUB_REPO`: Target repository name.
+- `GITHUB_TOKEN`: GitHub Personal Access Token (PAT).
+  - **Minimum Read Permissions**:
+    - Classic PAT: `repo` (private repos) or `public_repo` (public repos).
+    - Fine-Grained PAT: `Issues: Read-only` and `Pull requests: Read-only`.
+- `GITHUB_EMPLOYEE_MAPPINGS` (Optional): Custom JSON mapping `{ "github_handle": employee_id }`.
+
+When unconfigured or offline, the platform transparently runs in **Development Sample Data Mode** calibrated to the CrewIQ seed workforce.
 
 ## Data model notes
 

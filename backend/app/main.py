@@ -42,6 +42,7 @@ from app.schemas import (
     WorkloadAnalysisResponse,
     WorkloadEmployeeRow,
     ActivityOut,
+    GitHubProgressResponse,
 )
 from app.seed import seed_if_needed
 from app.services.dashboard import build_dashboard
@@ -61,12 +62,25 @@ from app.services.workload_utils import (
     sync_employee_workload_field,
     utilization_status,
 )
+from app.services.github_client import GitHubClient
+from app.services.github_analytics import fetch_and_calculate_github_progress
 
 app = FastAPI(title="CrewIQ — Workforce Intelligence Platform", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://localhost:8001",
+        "http://127.0.0.1:8001",
+        "http://localhost:8002",
+        "http://127.0.0.1:8002",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -76,6 +90,18 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
+    # Ensure github_username column exists on existing SQLite database
+    try:
+        with engine.connect() as conn:
+            cursor = conn.connection.cursor()
+            cursor.execute("PRAGMA table_info(employees)")
+            cols = [r[1] for r in cursor.fetchall()]
+            if cols and "github_username" not in cols:
+                cursor.execute("ALTER TABLE employees ADD COLUMN github_username VARCHAR(80)")
+                conn.connection.commit()
+    except Exception:
+        pass
+
     db = next(get_db())
     try:
         seed_if_needed(db)
@@ -603,4 +629,22 @@ def _risk_for_project(db: Session, proj: Project) -> dict:
         [effective_utilization(db, e) for e in team],
         [e.availability_percentage for e in team],
         date.today(),
+    )
+
+
+@app.get("/api/github/progress", response_model=GitHubProgressResponse)
+async def get_github_progress(
+    start_date: str | None = None,
+    end_date: str | None = None,
+    employee_id: int | None = None,
+    db: Session = Depends(get_db),
+) -> GitHubProgressResponse:
+    """Fetch task completion, PR activity, and review telemetry from GitHub."""
+    client = GitHubClient()
+    return await fetch_and_calculate_github_progress(
+        db=db,
+        client=client,
+        start_date=start_date,
+        end_date=end_date,
+        employee_id=employee_id,
     )

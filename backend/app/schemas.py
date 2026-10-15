@@ -17,6 +17,7 @@ class EmployeeBase(BaseModel):
     experience_years: float = Field(ge=0)
     availability_percentage: float = Field(default=100)
     workload_percentage: float = Field(default=0)
+    github_username: str | None = None
     active: bool = True
 
     @field_validator("skills")
@@ -53,6 +54,7 @@ class EmployeeUpdate(BaseModel):
     experience_years: float | None = Field(default=None, ge=0)
     availability_percentage: float | None = None
     workload_percentage: float | None = None
+    github_username: str | None = None
     active: bool | None = None
 
     @field_validator("availability_percentage", "workload_percentage")
@@ -291,3 +293,73 @@ class ConfigOut(BaseModel):
     risk_weights: dict[str, float]
     workload_thresholds: dict[str, float]
     methodology: str
+
+
+class GitHubConnectionStatus(BaseModel):
+    is_connected: bool
+    configured: bool
+    owner: str | None = None
+    repo: str | None = None
+    rate_limit_remaining: int | None = None
+    rate_limit_reset: str | None = None
+    last_sync: str
+    error_message: str | None = None
+    is_sample: bool = False
+
+
+class GitHubTeamSummary(BaseModel):
+    total_eligible_tasks: int
+    total_completed_tasks: int
+    overall_task_progress_pct: float
+    total_prs_opened: int
+    total_prs_merged: int
+    total_reviews_completed: int
+    overdue_tasks_count: int
+    active_contributors_count: int
+
+
+class GitHubTaskItem(BaseModel):
+    id: int | str
+    number: int
+    title: str
+    type: str  # "issue" or "pull_request"
+    state: str  # "open", "closed", "merged"
+    assigned_employee_id: int | None = None
+    assigned_employee_name: str | None = None
+    github_assignees: list[str] = Field(default_factory=list)
+    author: str
+    created_at: str
+    closed_at: str | None = None
+    due_date: str | None = None
+    is_overdue: bool = False
+    html_url: str
+    linked_pr_url: str | None = None
+    linked_issue_number: int | None = None
+
+
+class GitHubEmployeeProgress(BaseModel):
+    employee_id: int
+    employee_name: str
+    job_title: str
+    department: str
+    github_username: str | None = None
+    assigned_tasks: int
+    completed_tasks: int
+    open_tasks: int
+    overdue_tasks: int
+    task_progress_pct: float
+    prs_opened: int
+    prs_merged: int
+    prs_open: int
+    pr_merge_rate_pct: float
+    reviews_requested: int
+    reviews_completed: int
+    recent_tasks: list[GitHubTaskItem] = Field(default_factory=list)
+
+
+class GitHubProgressResponse(BaseModel):
+    connection_status: GitHubConnectionStatus
+    team_summary: GitHubTeamSummary
+    employee_progress: list[GitHubEmployeeProgress]
+    tasks: list[GitHubTaskItem]
+    departments: list[str] = Field(default_factory=list)

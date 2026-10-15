@@ -30,6 +30,7 @@ def employee_to_out(db: Session, emp: Employee) -> EmployeeOut:
         experience_years=emp.experience_years,
         availability_percentage=emp.availability_percentage,
         workload_percentage=round(util, 1),
+        github_username=getattr(emp, "github_username", None),
         active=emp.active,
         active_projects=active_projects,
     )

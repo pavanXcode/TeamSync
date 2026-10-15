@@ -44,3 +44,23 @@ TRAINING_SUGGESTIONS = {
 }
 
 DATABASE_URL = "sqlite:///./crewiq.db"
+
+# Explicit default GitHub username -> Employee ID mapping
+DEFAULT_GITHUB_EMPLOYEE_MAP: dict[str, int] = {
+    "priyasharma-dev": 1,
+    "marcuschen": 2,
+    "erodriguez-cloud": 3,
+    "jokonkwo": 4,
+    "sarahmitchell-fe": 5,
+    "davidkim-fs": 6,
+    "amirahassan-sec": 7,
+    "tombecker-dev": 8,
+    "lisanguyen-pm": 9,
+    "ryan-obrien-ops": 10,
+    "ninapatel-ml": 11,
+    "chriswalton-qa": 12,
+    "fatima-alsayed-db": 13,
+    "kevinbrooks-sa": 14,
+    "mayajohnson-data": 15,
+    "olivergrant-dev": 16,
+}

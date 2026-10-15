@@ -29,6 +29,7 @@ class Employee(Base):
     experience_years: Mapped[float] = mapped_column(Float, default=0)
     availability_percentage: Mapped[float] = mapped_column(Float, default=100)
     workload_percentage: Mapped[float] = mapped_column(Float, default=0)
+    github_username: Mapped[str | None] = mapped_column(String(80), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     assignments: Mapped[list["Assignment"]] = relationship(
